@@ -149,7 +149,7 @@ pub struct Grid<T> {
 
 impl<T> Grid<T>
 where
-    T: From<char>,
+    T: From<u8>,
 {
     pub fn parse_lines(input: &str) -> Self {
         let width = input.find('\n').unwrap_or(input.len());
@@ -158,8 +158,10 @@ where
         debug_assert!(!input.lines().any(|line| line.len() != width));
 
         let data = input
-            .chars()
-            .filter(|c| *c != '\n')
+            .as_bytes()
+            .iter()
+            .copied()
+            .filter(|c| *c != b'\n')
             .map(T::from)
             .collect_vec();
 
