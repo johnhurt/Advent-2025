@@ -255,6 +255,15 @@ impl<T> Grid<T> {
         })
     }
 
+    pub fn neighbors_with_diagonals(
+        &self,
+        i: usize,
+    ) -> impl Iterator<Item = (FullCompass, usize)> + '_ {
+        FullCompass::iter().filter_map(move |dir| {
+            self.step_from_index(i, dir).map(move |j| (dir, j))
+        })
+    }
+
     pub fn escaping(&self, i: usize) -> impl Iterator<Item = Compass> + '_ {
         Compass::iter()
             .filter(move |dir| self.step_from_index(i, *dir).is_some())
