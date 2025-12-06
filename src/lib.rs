@@ -20,9 +20,11 @@ pub type TV4<K> = TinyVec<[K; 4]>;
 
 /// A combinator that takes a parser `inner` and produces a parser that also consumes both leading and
 /// trailing whitespace, returning the output of `inner`.
-pub fn ws<'a, F, O, E: ParseError<&'a str>>(inner: F) -> impl Parser<&'a str>
+pub fn ws<'a, F, O, E: ParseError<&'a str>>(
+    inner: F,
+) -> impl Parser<&'a str, Output = O, Error = E>
 where
-    F: Parser<&'a str>,
+    F: Parser<&'a str, Output = O, Error = E>,
 {
     delimited(multispace0, inner, multispace0)
 }
@@ -215,6 +217,10 @@ impl<T> Grid<T> {
             action(prev, next);
             prev = next;
         }
+    }
+
+    pub fn column(&self, col: usize) -> impl Iterator<Item = (usize, &T)> {
+        self.ray(col, FullCompass::S)
     }
 
     pub fn at_index(&self, i: usize) -> Option<&'_ T> {
