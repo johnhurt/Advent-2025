@@ -143,7 +143,7 @@ impl Compass {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-pub struct Grid<T> {
+pub struct Grid<T = u8> {
     pub width: usize,
     pub height: usize,
     pub data: Vec<T>,
