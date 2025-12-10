@@ -117,9 +117,6 @@ impl Sum {
 struct SoE {
     active_vars: HashSet<u8>,
     solved_vars: HashMap<u8, Sum>,
-
-    // Sums of terms that all equal zero
-    equations: Vec<Sum>,
 }
 
 impl SoE {
@@ -138,7 +135,6 @@ impl SoE {
 
         self.active_vars.extend(v_eq.1.keys().copied());
         self.solved_vars.insert(v, v_eq);
-        self.equations.push(eq);
     }
 
     fn eval(&self, clicks: &mut [u16]) -> Option<usize> {
@@ -227,14 +223,6 @@ impl Setup {
             .collect()
     }
 
-    fn max_single_clicks(&self) -> usize {
-        self.joltages
-            .iter()
-            .map(|j| *j as usize)
-            .max()
-            .unwrap_or_default()
-    }
-
     fn solve_part_2(self) -> usize {
         let mut soe = SoE::default();
         self.as_equations()
@@ -250,19 +238,30 @@ impl Setup {
             return soe.eval(&mut clicks).unwrap();
         }
 
+        let independent_vars = soe.active_vars.iter().copied().collect_vec();
+
         // the maximum times we will click a single button is the maximum
         // joltage
-        let max_clicks = self.max_single_clicks() as u64;
-
-        let independent_vars = soe.active_vars.iter().copied().collect_vec();
+        let max_clicks = independent_vars
+            .iter()
+            .copied()
+            .map(|v| {
+                self.buttons[v as usize]
+                    .iter()
+                    .map(|b| self.joltages[*b as usize])
+                    .min()
+                    .unwrap() as usize
+            })
+            .collect_vec();
 
         // There shouldn't be many independent variables left, so brute force
         // all possible combinations to find the answer
-        (0..(max_clicks.pow(soe.active_vars.len() as u32)))
+        (0..(max_clicks.iter().copied().product()))
             .filter_map(|mut i| {
                 clicks.iter_mut().for_each(|c| *c = 0);
-                for v in &independent_vars {
-                    clicks[*v as usize] = (i % max_clicks) as u16;
+                for (v_i, v) in independent_vars.iter().copied().enumerate() {
+                    let max_clicks = max_clicks[v_i];
+                    clicks[v as usize] = (i % max_clicks) as u16;
                     i /= max_clicks;
                 }
 
